@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "origin": "Ограниченная учебная выборка из онлайн-словаря синонимов и близких по смыслу слов КартаСлов.ру.",
+    "source": "https://kartaslov.ru",
+    "rule": "Для каждой группы canonical задаёт итоговую форму, а variants взяты со страницы canonical в указанном source."
+  },
+  "groups": [
+    {
+      "canonical": "хороший",
+      "variants": ["отличный", "прекрасный"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/хороший"
+    },
+    {
+      "canonical": "плохой",
+      "variants": ["ужасный", "отвратительный"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/плохой"
+    },
+    {
+      "canonical": "красивый",
+      "variants": ["симпатичный", "привлекательный"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/красивый"
+    },
+    {
+      "canonical": "удобный",
+      "variants": ["комфортный", "комфортабельный"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/удобный"
+    },
+    {
+      "canonical": "размер",
+      "variants": ["габарит", "величина"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/размер"
+    },
+    {
+      "canonical": "товар",
+      "variants": ["ассортимент", "изделие"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/товар"
+    },
+    {
+      "canonical": "быстрый",
+      "variants": ["проворный", "скорый"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/быстрый"
+    },
+    {
+      "canonical": "медленный",
+      "variants": ["неторопливый", "неспешный"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/медленный"
+    },
+    {
+      "canonical": "дешевый",
+      "variants": ["недорогой", "дешевенький"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/дешёвый"
+    },
+    {
+      "canonical": "ткань",
+      "variants": ["материя", "материал"],
+      "source": "https://kartaslov.ru/синонимы-к-слову/ткань"
+    }
+  ]
+}
