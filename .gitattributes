@@ -10,3 +10,5 @@
 *.jar binary
 *.woff binary
 *.woff2 binary
+
+Laba1/data/rureviews.tsv -whitespace

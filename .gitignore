@@ -22,3 +22,7 @@ htmlcov/
 !.env.example
 *.log
 **/data/
+!Laba1/data/
+Laba1/data/*
+!Laba1/data/rureviews.tsv
+Laba1/artifacts/
