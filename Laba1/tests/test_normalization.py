@@ -8,7 +8,7 @@ from typing import cast
 import pytest
 
 from Laba1.src import cli
-from Laba1.src.normalization import (
+from LabsCommon.normalization import (
     RESOURCE_DIRECTORY,
     MorphAnalyzer,
     NormalizationConfig,
@@ -16,7 +16,7 @@ from Laba1.src.normalization import (
     ParseResult,
     TextNormalizer,
 )
-from Laba1.src.tokenizer import tokenize
+from LabsCommon.tokenizer import tokenize
 
 
 def test_tokenize_handles_unicode_words_numbers_and_internal_separators() -> None:

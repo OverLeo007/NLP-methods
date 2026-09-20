@@ -6,7 +6,7 @@ from collections.abc import Iterable
 
 from sklearn.feature_extraction.text import CountVectorizer
 
-from .normalization import NormalizationConfig, TextNormalizer
+from LabsCommon.normalization import NormalizationConfig, TextNormalizer
 
 
 def normalize_reviews(reviews: Iterable[str], config: NormalizationConfig) -> list[str]:
