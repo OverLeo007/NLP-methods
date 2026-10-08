@@ -12,7 +12,7 @@ from Laba1.src.model import (
     load_model_package,
     save_model_package,
 )
-from Laba1.src.normalization import NormalizationConfig
+from LabsCommon.normalization import NormalizationConfig
 
 
 @pytest.fixture
