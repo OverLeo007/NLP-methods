@@ -1,0 +1,24 @@
+# Local IDE settings
+/.idea/
+
+# Python environments and bytecode
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Tool caches and test artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Datasets and generated results
+**/data/
+!Laba1/data/
+Laba1/data/*
+!Laba1/data/rureviews.tsv
+Laba1/artifacts/
+Laba2/artifacts/

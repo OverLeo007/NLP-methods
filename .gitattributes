@@ -11,4 +11,4 @@
 *.woff binary
 *.woff2 binary
 
-Laba1/data/rureviews.tsv -whitespace
+python/Laba1/data/rureviews.tsv -whitespace
