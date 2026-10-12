@@ -1,0 +1,20 @@
+plugins {
+    id 'nlp.java-base'
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    add('implementation', libs.spring.boot.starter.get())
+    add('implementation', libs.picocli.spring.boot.get())
+}
+
+tasks.named('processResources') {
+    // Собственная конфигурация модуля имеет приоритет над общей.
+    from(rootProject.file('config')) {
+        exclude { new File(projectDir, "src/main/resources/${it.path}").exists() }
+    }
+}
+
+tasks.named('jar') {
+    enabled = false
+}

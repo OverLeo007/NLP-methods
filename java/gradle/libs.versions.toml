@@ -1,0 +1,21 @@
+[versions]
+spring-boot = "4.0.8"
+picocli = "4.7.7"
+lombok = "1.18.42"
+lombok-plugin = "9.8.0"
+spotless = "8.10.4"
+google-java-format = "1.34.0"
+
+[libraries]
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+picocli-spring-boot = { module = "info.picocli:picocli-spring-boot-starter", version.ref = "picocli" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+assertj-core = { module = "org.assertj:assertj-core" }
+spotless-plugin = { module = "com.diffplug.spotless:com.diffplug.spotless.gradle.plugin", version.ref = "spotless" }
+lombok-plugin = { module = "io.freefair.lombok:io.freefair.lombok.gradle.plugin", version.ref = "lombok-plugin" }
+spring-boot-plugin = { module = "org.springframework.boot:org.springframework.boot.gradle.plugin", version.ref = "spring-boot" }
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -1,0 +1,34 @@
+import com.diffplug.gradle.spotless.FormatExtension
+
+plugins {
+    id 'base'
+    alias(libs.plugins.spotless)
+}
+
+spotless {
+    enforceCheck = false
+    format('buildFiles', { FormatExtension buildFiles ->
+        buildFiles.target(files(
+            fileTree('.') {
+                include '*.gradle', '*.properties', 'lombok.config', 'gradle/**/*.toml', 'gradle/**/*.properties'
+                include 'config/**', 'build-logic/**/*.gradle'
+                exclude '**/build/**', '**/.gradle/**'
+            },
+            subprojects.collect { it.buildFile }
+        ))
+        buildFiles.trimTrailingWhitespace()
+        buildFiles.endWithNewline()
+    } as Action<FormatExtension>)
+}
+
+tasks.named('check') {
+    dependsOn subprojects.collect { "${it.path}:check" }
+}
+
+tasks.named('build') {
+    dependsOn subprojects.collect { "${it.path}:build" }
+}
+
+tasks.named('updateDaemonJvm') {
+    toolchainDownloadUrls = [:]
+}

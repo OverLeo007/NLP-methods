@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+    id 'com.diffplug.spotless'
+    id 'io.freefair.lombok'
+}
+
+group = 'ru.nlp'
+version = '0.1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+lombok {
+    version = libs.versions.lombok.asProvider().get()
+}
+
+dependencies {
+    add('implementation', platform(libs.spring.boot.bom.get()))
+    add('testImplementation', libs.junit.jupiter.get())
+    add('testImplementation', libs.assertj.core.get())
+    add('testRuntimeOnly', libs.junit.platform.launcher.get())
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.addBooleanOption('Xdoclint:all,-missing', true)
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    systemProperty 'file.encoding', 'UTF-8'
+    testLogging {
+        events 'failed', 'skipped'
+        exceptionFormat = 'full'
+    }
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+spotless {
+    enforceCheck = false
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat(libs.versions.google.java.format.get())
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}

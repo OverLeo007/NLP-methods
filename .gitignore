@@ -26,3 +26,10 @@ htmlcov/
 Laba1/data/*
 !Laba1/data/rureviews.tsv
 Laba1/artifacts/
+/java/datasets/
+
+# Java build outputs and local Gradle caches
+/java/**/build/
+/java/**/.gradle/
+/java/.gradle-user-home/
+/java/**/artifacts/
