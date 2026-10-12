@@ -1,0 +1,28 @@
+[dataset]
+format = "tsv"
+
+[columns]
+text = "review"
+label = "sentiment"
+
+[cleaning]
+empty = "drop"
+labels = { neautral = "neutral" }
+duplicates = "keep"
+conflicts = "majority"
+tie = "drop"
+
+[split]
+enabled = true
+train = 70
+validation = 15
+test = 15
+random_state = 42
+
+[sampling]
+per_split = { train = 200, validation = 0, test = 50 }
+
+[expect]
+rows = 750
+classes = 3
+splits = { train = 80, test = 20 }

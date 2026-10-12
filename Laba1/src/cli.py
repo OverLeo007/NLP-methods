@@ -9,6 +9,9 @@ import tempfile
 from pathlib import Path
 from typing import Sequence
 
+from LabsCommon.normalization import NormalizationConfig, NormalizationError, TextNormalizer
+from LabsCommon.tokenizer import tokenize
+
 from .data import (
     DataValidationError,
     prepare_rureviews,
@@ -23,8 +26,6 @@ from .experiment import (
     train_selected_model,
 )
 from .model import ModelPackageError, build_metadata, load_model_package, save_model_package
-from .normalization import NormalizationConfig, NormalizationError, TextNormalizer
-from .tokenizer import tokenize
 
 
 class CliInputError(ValueError):

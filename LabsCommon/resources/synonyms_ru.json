@@ -2,7 +2,7 @@
   "metadata": {
     "origin": "Ограниченная учебная выборка из онлайн-словаря синонимов и близких по смыслу слов КартаСлов.ру.",
     "source": "https://kartaslov.ru",
-    "rule": "Для каждой группы canonical задаёт итоговую форму, а variants взяты со страницы canonical в указанном source."
+    "rule": "Для RuReviews каждая группа canonical задаёт итоговую форму, а variants взяты со страницы canonical в указанном source."
   },
   "groups": [
     {

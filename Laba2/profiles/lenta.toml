@@ -1,0 +1,14 @@
+[dataset]
+format = "csv"
+
+[columns]
+text = "text"
+
+[adapter]
+path = "Laba2.src.adapters.lenta:prepare"
+parameters = { retained_source = "Laba2/data/lenta-ru-news.csv" }
+
+[expect]
+rows = 1000
+classes = 4
+splits = { train = 80, test = 20 }

@@ -9,10 +9,11 @@ from typing import Final, cast
 import pandas as pd
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
+from LabsCommon.normalization import NormalizationConfig
+
 from .data import PUBLIC_LABELS
 from .features import normalize_reviews
 from .model import FittedModel, ModelPackageError, fit_model
-from .normalization import NormalizationConfig
 
 SELECTED_CONFIG: Final = NormalizationConfig(
     method="stem", remove_stopwords=True, use_synonyms=False

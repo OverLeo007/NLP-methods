@@ -17,9 +17,10 @@ import joblib
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
+from LabsCommon.normalization import NormalizationConfig, NormalizationError
+
 from .data import PUBLIC_LABELS, RANDOM_STATE
 from .features import build_vectorizer, normalize_reviews
-from .normalization import NormalizationConfig, NormalizationError
 
 DEPENDENCY_NAMES: Final = ("joblib", "pandas", "pymorphy3", "scikit-learn", "snowballstemmer")
 

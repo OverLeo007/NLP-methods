@@ -12,7 +12,7 @@ import pytest
 
 from Laba1.src import cli
 from Laba1.src.model import build_metadata, fit_model, save_model_package
-from Laba1.src.normalization import NormalizationConfig
+from LabsCommon.normalization import NormalizationConfig
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
