@@ -1,0 +1,32 @@
+def arch = System.getProperty('os.arch')
+if (!(arch in ['amd64', 'x86_64'])) {
+    throw new GradleException('Для Laba3 поддерживается только x86_64: ' + arch)
+}
+
+def os = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+def nativePlatform
+if (os.contains('win')) {
+    nativePlatform = 'windows-x86_64'
+} else if (os.contains('linux')) {
+    nativePlatform = 'linux-x86_64'
+} else if (os.contains('mac')) {
+    nativePlatform = 'macosx-x86_64'
+} else {
+    throw new GradleException('Неподдерживаемая ОС для Laba3: ' + os)
+}
+
+project.extensions.extraProperties.set('nativePlatform', nativePlatform)
+
+dependencies {
+    add('runtimeOnly', variantOf(libs.nd4j.native) { classifier(nativePlatform) })
+    add('runtimeOnly', variantOf(libs.openblas) { classifier(nativePlatform) })
+    add('runtimeOnly', variantOf(libs.javacpp) { classifier(nativePlatform) })
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}
+
+tasks.named('bootRun') {
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}

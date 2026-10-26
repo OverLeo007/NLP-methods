@@ -1,0 +1,16 @@
+plugins {
+    id 'com.diffplug.spotless'
+}
+
+spotless {
+    enforceCheck = false
+    java {
+        target 'src/**/*.java'
+        eclipse(libs.versions.eclipse.jdt.get()).configFile(rootProject.file('formatting/eclipse-java.xml'))
+        importOrder('#', 'java', 'javax', 'org', 'com', 'ru', '')
+        custom('controlStatementBlankLines', { String source -> ru.nlp.buildlogic.JavaBlankLines.format(source) })
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}

@@ -1,0 +1,18 @@
+// Стандартная processResources заполняет metadata из единого каталога версий.
+def modelVersions = [
+        dl4jVersion: libs.versions.dl4j.get(),
+        luceneVersion: libs.versions.lucene.get(),
+        openblasVersion: libs.versions.openblas.get(),
+        javacppVersion: libs.versions.javacpp.get(),
+        springBootVersion: libs.versions.spring.boot.get(),
+        picocliVersion: libs.versions.picocli.get(),
+        nativePlatform: project.extensions.extraProperties.get('nativePlatform')
+]
+
+tasks.named('processResources') {
+    inputs.properties(modelVersions)
+
+    filesMatching('model-versions.properties') {
+        expand(modelVersions)
+    }
+}

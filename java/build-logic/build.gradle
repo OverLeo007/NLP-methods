@@ -6,4 +6,15 @@ dependencies {
     implementation libs.spotless.plugin
     implementation libs.lombok.plugin
     implementation libs.spring.boot.plugin
+    add('testImplementation', platform(libs.spring.boot.bom)) {
+        // Kotlin входит в runtime самого Gradle; версии тестов не должны его обновлять.
+        exclude group: 'org.jetbrains.kotlin'
+    }
+    testImplementation libs.junit.jupiter
+    testImplementation libs.assertj.core
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }
