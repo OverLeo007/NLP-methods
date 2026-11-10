@@ -1,0 +1,15 @@
+plugins {
+    id 'nlp.cli-application'
+}
+
+apply from: 'gradle/native-backend.gradle'
+apply from: 'gradle/model-metadata.gradle'
+
+dependencies {
+    implementation libs.dl4j.nlp
+    implementation libs.nd4j.native
+    implementation libs.openblas
+    implementation libs.lucene.analysis.common
+    implementation libs.jackson.databind
+    implementation libs.jackson.dataformat.csv
+}

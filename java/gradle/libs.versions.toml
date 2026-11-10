@@ -4,9 +4,20 @@ picocli = "4.7.7"
 lombok = "1.18.42"
 lombok-plugin = "9.8.0"
 spotless = "8.10.4"
-google-java-format = "1.34.0"
+eclipse-jdt = "4.40"
+dl4j = "1.0.0-M2.1"
+lucene = "10.3.1"
+openblas = "0.3.19-1.5.7"
+javacpp = "1.5.7"
 
 [libraries]
+dl4j-nlp = { module = "org.deeplearning4j:deeplearning4j-nlp", version.ref = "dl4j" }
+nd4j-native = { module = "org.nd4j:nd4j-native", version.ref = "dl4j" }
+openblas = { module = "org.bytedeco:openblas", version.ref = "openblas" }
+javacpp = { module = "org.bytedeco:javacpp", version.ref = "javacpp" }
+lucene-analysis-common = { module = "org.apache.lucene:lucene-analysis-common", version.ref = "lucene" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+jackson-dataformat-csv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv" }
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
 picocli-spring-boot = { module = "info.picocli:picocli-spring-boot-starter", version.ref = "picocli" }

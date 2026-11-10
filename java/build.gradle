@@ -2,16 +2,20 @@ import com.diffplug.gradle.spotless.FormatExtension
 
 plugins {
     id 'base'
-    alias(libs.plugins.spotless)
+    id 'nlp.java-format'
 }
 
 spotless {
     enforceCheck = false
+    java {
+        target 'build-logic/src/**/*.java'
+    }
     format('buildFiles', { FormatExtension buildFiles ->
         buildFiles.target(files(
             fileTree('.') {
                 include '*.gradle', '*.properties', 'lombok.config', 'gradle/**/*.toml', 'gradle/**/*.properties'
                 include 'config/**', 'build-logic/**/*.gradle'
+                include 'formatting/**', '.editorconfig', 'laba3/gradle/**/*.gradle'
                 exclude '**/build/**', '**/.gradle/**'
             },
             subprojects.collect { it.buildFile }
@@ -23,6 +27,7 @@ spotless {
 
 tasks.named('check') {
     dependsOn subprojects.collect { "${it.path}:check" }
+    dependsOn gradle.includedBuild('build-logic').task(':test')
 }
 
 tasks.named('build') {
