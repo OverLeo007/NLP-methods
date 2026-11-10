@@ -21,11 +21,11 @@ gradlew.bat build spotlessCheck
 
 ## Запуск
 
-Каждая работа — отдельное CLI-приложение. Сначала соберите нужный модуль,
-затем передайте раннеру его имя и аргументы приложения:
+Работы №3 и №4 используют общее CLI-приложение `semantic-analyzer`.
+Соберите модуль, затем передайте раннеру его имя и аргументы приложения:
 
 ```bat
-run-lab.cmd laba3 --help
+run-lab.cmd semantic-analyzer --help
 ```
 
 В PowerShell используйте `./run-lab.cmd`, в Linux/macOS — `sh ./run-lab.sh`.
@@ -37,12 +37,15 @@ JAR ищется относительно скрипта в `<модуль>/buil
 Для прямого запуска вместо раннера (в Windows консоль должна использовать UTF-8):
 
 ```sh
-java "-Dfile.encoding=UTF-8" "-Dstdout.encoding=UTF-8" "-Dstderr.encoding=UTF-8" --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -jar laba3/build/libs/laba3-0.1.0.jar --help
+java "-Dfile.encoding=UTF-8" "-Dstdout.encoding=UTF-8" "-Dstderr.encoding=UTF-8" --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -jar semantic-analyzer/build/libs/semantic-analyzer-0.1.0.jar --help
 ```
 
-Имя JAR и аргументы заменяются на нужную работу. Параметры JVM, например
+Имя JAR и аргументы заменяются на нужное приложение. Параметры JVM, например
 `-Xmx4g`, указываются перед `-jar`.
 
 ## Работы
 
-- №3: [инструкция](laba3/README.md), [отчёт](laba3/Laba3.md).
+- [Семантический анализатор](semantic-analyzer/README.md): сборка, развёртывание,
+  команды, форматы данных и примеры.
+- №3: [инструкция (легаси)](laba3/README.md), [отчёт](laba3/Laba3.md).
+- №4: [инструкция](semantic-analyzer/README.md), [отчёт](laba4/Laba4.md).

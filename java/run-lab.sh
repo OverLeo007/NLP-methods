@@ -1,5 +1,5 @@
 #!/bin/sh
-# Запуск: sh ./run-lab.sh laba3 <аргументы лабораторной>
+# Запуск: sh ./run-lab.sh semantic-analyzer <аргументы лабораторной>
 if [ "$#" -eq 0 ]; then
     echo 'Использование: sh ./run-lab.sh <модуль> [аргументы]. Требуется Java 25 первой в PATH.' >&2
     exit 2
