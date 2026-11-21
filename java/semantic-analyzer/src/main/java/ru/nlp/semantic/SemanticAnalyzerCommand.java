@@ -18,6 +18,7 @@ import ru.nlp.semantic.generation.TemplateGenerator;
 import ru.nlp.semantic.model.analysis.Algorithm;
 import ru.nlp.semantic.model.cnn.CnnParameters;
 import ru.nlp.semantic.model.lsa.LsaParameters;
+import ru.nlp.semantic.model.lstm.LstmParameters;
 import ru.nlp.semantic.model.search.SearchResult;
 import ru.nlp.semantic.model.training.TrainingSummary;
 import ru.nlp.semantic.model.word2vec.Word2VecParameters;
@@ -37,7 +38,7 @@ import picocli.CommandLine.Spec;
 @Command(
         name = "semantic-analyzer",
         mixinStandardHelpOptions = true,
-        description = "Семантический анализ документов: Word2Vec, LSA и CNN.",
+        description = "Семантический анализ документов: Word2Vec, LSA, CNN и LSTM.",
         subcommands = {SemanticAnalyzerCommand.TrainCommand.class, SemanticAnalyzerCommand.SearchCommand.class,
                 SemanticAnalyzerCommand.GenerateCommand.class, PrepareRiaCommand.class,
                 EvaluateCommand.class},
@@ -93,6 +94,8 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
 
         private final ModelBackend<CnnParameters> cnnBackend;
 
+        private final ModelBackend<LstmParameters> lstmBackend;
+
         private final ObjectMapper jsonMapper;
 
         @Spec
@@ -107,7 +110,11 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         @Option(names = "--algorithm", defaultValue = "word2vec", description = "Алгоритм: ${COMPLETION-CANDIDATES}.")
         private Algorithm algorithm;
 
-        @Option(names = "--max-features", defaultValue = "20000", description = "Лимит словаря LSA/CNN по частоте.")
+        @Option(
+                names = "--max-features",
+                defaultValue = "20000",
+                description = "Лимит словаря LSA/CNN/LSTM по частоте."
+        )
         private int maxFeatures;
 
         @Option(names = "--limit", defaultValue = "1000", description = "Лимит уникальных документов.")
@@ -120,31 +127,43 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         )
         private int dimensions;
 
-        @Option(names = "--epochs", defaultValue = "3", description = "Количество эпох Word2Vec/CNN.")
+        @Option(names = "--epochs", defaultValue = "3", description = "Количество эпох Word2Vec/CNN/LSTM.")
         private int epochs;
 
-        @Option(names = "--min-count", defaultValue = "2", description = "Минимальная частота слова Word2Vec/CNN.")
+        @Option(names = "--min-count", defaultValue = "2", description = "Минимальная частота слова Word2Vec/CNN/LSTM.")
         private int minCount;
 
         @Option(names = "--window", defaultValue = "5", description = "Окно Word2Vec.")
         private int window;
 
-        @Option(names = "--seed", defaultValue = "42", description = "Seed обучения Word2Vec/CNN.")
+        @Option(names = "--seed", defaultValue = "42", description = "Seed обучения Word2Vec/CNN/LSTM.")
         private long seed;
 
         @Option(names = "--workers", defaultValue = "1", description = "Потоки обучения и ND4J.")
         private int workers;
 
         @Mixin
-        private final CnnOptions cnnOptions = new CnnOptions();
+        private final NetworkOptions networkOptions = new NetworkOptions();
 
         /** Выводит итог обучения в JSON; сообщения прогресса идут в stderr. */
         @Override
         public Integer call() throws Exception {
-            requireAlgorithms(Set.of(Algorithm.word2vec, Algorithm.cnn), "--epochs", "--min-count", "--seed");
-            requireAlgorithms(Set.of(Algorithm.lsa, Algorithm.cnn), "--max-features");
+            requireAlgorithms(
+                    Set.of(Algorithm.word2vec, Algorithm.cnn, Algorithm.lstm),
+                    "--epochs",
+                    "--min-count",
+                    "--seed"
+            );
+            requireAlgorithms(Set.of(Algorithm.lsa, Algorithm.cnn, Algorithm.lstm), "--max-features");
             requireAlgorithms(Set.of(Algorithm.word2vec), "--window");
-            requireAlgorithms(Set.of(Algorithm.cnn), CnnOptions.NAMES);
+            requireAlgorithms(Set.of(Algorithm.cnn), NetworkOptions.CNN_ONLY);
+            requireAlgorithms(
+                    Set.of(Algorithm.cnn, Algorithm.lstm),
+                    "--embedding-dimensions",
+                    "--max-length",
+                    "--batch-size",
+                    "--learning-rate"
+            );
             // Композиция типизированных параметров находится только на границе CLI.
             TrainingSummary result = switch (algorithm) {
                 case lsa -> lsaBackend.train(input, output, limit, new LsaParameters(dimensions, maxFeatures, workers));
@@ -154,11 +173,28 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
                         limit,
                         new Word2VecParameters(dimensions, epochs, minCount, window, seed, workers)
                 );
+                case lstm -> lstmBackend.train(
+                        input,
+                        output,
+                        limit,
+                        new LstmParameters(
+                                dimensions,
+                                networkOptions.embeddingDimensions,
+                                networkOptions.maxLength,
+                                maxFeatures,
+                                minCount,
+                                networkOptions.batchSize,
+                                epochs,
+                                networkOptions.learningRate,
+                                seed,
+                                workers
+                        )
+                );
                 case cnn -> cnnBackend.train(
                         input,
                         output,
                         limit,
-                        cnnOptions.parameters(dimensions, maxFeatures, minCount, epochs, seed, workers)
+                        networkOptions.parameters(dimensions, maxFeatures, minCount, epochs, seed, workers)
                 );
             };
             specification
@@ -184,13 +220,12 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         }
     }
 
-    private static final class CnnOptions {
+    private static final class NetworkOptions {
 
-        private static final String[] NAMES = {"--embedding-dimensions", "--filters", "--kernel-size",
-                "--max-length", "--batch-size", "--learning-rate", "--temperature", "--validation-fraction",
-                "--pair-sampling"};
+        private static final String[] CNN_ONLY = {"--filters", "--kernel-size", "--temperature",
+                "--validation-fraction", "--pair-sampling"};
 
-        @Option(names = "--embedding-dimensions", defaultValue = "32", description = "CNN: размер вектора слова.")
+        @Option(names = "--embedding-dimensions", defaultValue = "32", description = "CNN/LSTM: размер вектора слова.")
         private int embeddingDimensions;
 
         @Option(names = "--filters", defaultValue = "32", description = "CNN: число свёрточных фильтров.")
@@ -199,17 +234,21 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         @Option(names = "--kernel-size", defaultValue = "3", description = "CNN: нечётная ширина свёртки.")
         private int kernelSize;
 
-        @Option(names = "--max-length", defaultValue = "96", description = "CNN: предел токенов фрагмента и поиска.")
+        @Option(
+                names = "--max-length",
+                defaultValue = "96",
+                description = "CNN/LSTM: предел токенов фрагмента и поиска."
+        )
         private int maxLength;
 
         @Option(
                 names = "--batch-size",
                 defaultValue = "16",
-                description = "CNN: документов в пакете (по два фрагмента)."
+                description = "CNN/LSTM: документов в пакете."
         )
         private int batchSize;
 
-        @Option(names = "--learning-rate", defaultValue = "0.003", description = "CNN: скорость Adam.")
+        @Option(names = "--learning-rate", defaultValue = "0.003", description = "CNN/LSTM: скорость Adam.")
         private double learningRate;
 
         @Option(names = "--temperature", defaultValue = "0.1", description = "CNN: температура NT-Xent.")

@@ -11,7 +11,9 @@ public enum Algorithm {
     /** TF-IDF с усечённым SVD. */
     lsa("LSA"),
     /** Контрастивно обученный свёрточный кодировщик текста. */
-    cnn("CNN");
+    cnn("CNN"),
+    /** LSTM-кодировщик, обученный восстанавливать последовательность токенов. */
+    lstm("LSTM");
 
     private final String displayName;
 

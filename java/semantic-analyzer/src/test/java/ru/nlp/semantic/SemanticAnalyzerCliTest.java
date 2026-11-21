@@ -98,7 +98,7 @@ class SemanticAnalyzerCliTest {
         }
 
         var trained = execute(args.toArray(String[]::new));
-        assertThat(trained.exitCode()).isZero();
+        assertThat(trained.exitCode()).as(trained.stderr()).isZero();
         var mapper = new JsonConfiguration().jsonMapper();
         assertThat(mapper.readTree(trained.stdout()).path("documents").asInt()).isEqualTo(6);
 
