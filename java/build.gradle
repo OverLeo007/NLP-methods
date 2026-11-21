@@ -15,7 +15,7 @@ spotless {
             fileTree('.') {
                 include '*.gradle', '*.properties', 'lombok.config', 'gradle/**/*.toml', 'gradle/**/*.properties'
                 include 'config/**', 'build-logic/**/*.gradle'
-                include 'formatting/**', '.editorconfig', 'laba3/gradle/**/*.gradle'
+                include 'formatting/**', '.editorconfig', 'semantic-analyzer/gradle/**/*.gradle'
                 exclude '**/build/**', '**/.gradle/**'
             },
             subprojects.collect { it.buildFile }

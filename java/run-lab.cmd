@@ -47,5 +47,5 @@ exit /b 2
 
 :usage
 >&2 echo Usage: run-lab.cmd MODULE [arguments]
->&2 echo Example: run-lab.cmd laba3 --help
+>&2 echo Example: run-lab.cmd semantic-analyzer --help
 exit /b 2
