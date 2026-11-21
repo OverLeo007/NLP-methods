@@ -4,6 +4,8 @@ import java.util.Map;
 
 import org.deeplearning4j.models.word2vec.Word2Vec;
 
+import ru.nlp.semantic.model.word2vec.dto.Word2VecParameters;
+
 /** Состояние Word2Vec для сохранения и построения векторизатора. */
 public record Word2VecModel(
         /** Обученные embeddings; доступ к нативным данным требует NativeRuntime. */

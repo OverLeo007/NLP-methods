@@ -1,5 +1,6 @@
 package ru.nlp.semantic;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -9,16 +10,20 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ru.nlp.semantic.backend.BackendRegistry;
-import ru.nlp.semantic.backend.ModelBackend;
-import ru.nlp.semantic.cnn.PairSampling;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.analysis.Algorithm;
-import ru.nlp.semantic.model.cnn.CnnParameters;
-import ru.nlp.semantic.model.lsa.LsaParameters;
-import ru.nlp.semantic.model.training.TrainingSummary;
-import ru.nlp.semantic.model.word2vec.Word2VecParameters;
+import ru.nlp.semantic.generation.TemplateGenerator;
+import ru.nlp.semantic.model.Algorithm;
+import ru.nlp.semantic.model.BackendRegistry;
+import ru.nlp.semantic.model.base.backend.ModelBackend;
+import ru.nlp.semantic.model.base.dto.TrainingSummary;
+import ru.nlp.semantic.model.cnn.dto.CnnParameters;
+import ru.nlp.semantic.model.lsa.dto.LsaParameters;
+import ru.nlp.semantic.model.lstm.dto.LstmObjective;
+import ru.nlp.semantic.model.lstm.dto.LstmParameters;
+import ru.nlp.semantic.model.shared.training.PairSampling;
+import ru.nlp.semantic.model.word2vec.dto.Word2VecParameters;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
+import ru.nlp.semantic.search.dto.SearchResult;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +34,14 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.ScopeType;
 import picocli.CommandLine.Spec;
 
-/** Корневая команда нормализации, обучения и поиска. */
+/** Корневая команда нормализации, обучения, поиска и шаблонной генерации. */
 @Component
 @Command(
         name = "semantic-analyzer",
         mixinStandardHelpOptions = true,
-        description = "Семантический анализ документов: Word2Vec, LSA и CNN.",
+        description = "Семантический анализ документов: Word2Vec, LSA, CNN и LSTM.",
         subcommands = {SemanticAnalyzerCommand.TrainCommand.class, SemanticAnalyzerCommand.SearchCommand.class,
-                PrepareRiaCommand.class,
+                SemanticAnalyzerCommand.GenerateCommand.class, PrepareRiaCommand.class,
                 EvaluateCommand.class},
         version = "SemanticAnalyzer 0.1.0"
 )
@@ -90,6 +95,8 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
 
         private final ModelBackend<CnnParameters> cnnBackend;
 
+        private final ModelBackend<LstmParameters> lstmBackend;
+
         private final ObjectMapper jsonMapper;
 
         @Spec
@@ -104,7 +111,11 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         @Option(names = "--algorithm", defaultValue = "word2vec", description = "Алгоритм: ${COMPLETION-CANDIDATES}.")
         private Algorithm algorithm;
 
-        @Option(names = "--max-features", defaultValue = "20000", description = "Лимит словаря LSA/CNN по частоте.")
+        @Option(
+                names = "--max-features",
+                defaultValue = "20000",
+                description = "Лимит словаря LSA/CNN/LSTM по частоте."
+        )
         private int maxFeatures;
 
         @Option(names = "--limit", defaultValue = "1000", description = "Лимит уникальных документов.")
@@ -117,31 +128,50 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         )
         private int dimensions;
 
-        @Option(names = "--epochs", defaultValue = "3", description = "Количество эпох Word2Vec/CNN.")
+        @Option(names = "--epochs", defaultValue = "3", description = "Количество эпох Word2Vec/CNN/LSTM.")
         private int epochs;
 
-        @Option(names = "--min-count", defaultValue = "2", description = "Минимальная частота слова Word2Vec/CNN.")
+        @Option(names = "--min-count", defaultValue = "2", description = "Минимальная частота слова Word2Vec/CNN/LSTM.")
         private int minCount;
 
         @Option(names = "--window", defaultValue = "5", description = "Окно Word2Vec.")
         private int window;
 
-        @Option(names = "--seed", defaultValue = "42", description = "Seed обучения Word2Vec/CNN.")
+        @Option(names = "--seed", defaultValue = "42", description = "Seed обучения Word2Vec/CNN/LSTM.")
         private long seed;
 
         @Option(names = "--workers", defaultValue = "1", description = "Потоки обучения и ND4J.")
         private int workers;
 
+        @Option(
+                names = "--seq2seq",
+                description = "Обучить LSTM восстанавливать токены. По умолчанию LSTM обучается поиску."
+        )
+        private boolean seq2seq;
+
         @Mixin
-        private final CnnOptions cnnOptions = new CnnOptions();
+        private final NetworkOptions networkOptions = new NetworkOptions();
 
         /** Выводит итог обучения в JSON; сообщения прогресса идут в stderr. */
         @Override
         public Integer call() throws Exception {
-            requireAlgorithms(Set.of(Algorithm.word2vec, Algorithm.cnn), "--epochs", "--min-count", "--seed");
-            requireAlgorithms(Set.of(Algorithm.lsa, Algorithm.cnn), "--max-features");
+            requireAlgorithms(
+                    Set.of(Algorithm.word2vec, Algorithm.cnn, Algorithm.lstm),
+                    "--epochs",
+                    "--min-count",
+                    "--seed"
+            );
+            requireAlgorithms(Set.of(Algorithm.lsa, Algorithm.cnn, Algorithm.lstm), "--max-features");
             requireAlgorithms(Set.of(Algorithm.word2vec), "--window");
-            requireAlgorithms(Set.of(Algorithm.cnn), CnnOptions.NAMES);
+            requireAlgorithms(Set.of(Algorithm.lstm), "--seq2seq");
+            requireAlgorithms(Set.of(Algorithm.cnn), NetworkOptions.CNN_ONLY);
+            requireAlgorithms(
+                    Set.of(Algorithm.cnn, Algorithm.lstm),
+                    "--embedding-dimensions",
+                    "--max-length",
+                    "--batch-size",
+                    "--learning-rate"
+            );
             // Композиция типизированных параметров находится только на границе CLI.
             TrainingSummary result = switch (algorithm) {
                 case lsa -> lsaBackend.train(input, output, limit, new LsaParameters(dimensions, maxFeatures, workers));
@@ -151,11 +181,29 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
                         limit,
                         new Word2VecParameters(dimensions, epochs, minCount, window, seed, workers)
                 );
+                case lstm -> lstmBackend.train(
+                        input,
+                        output,
+                        limit,
+                        new LstmParameters(
+                                dimensions,
+                                networkOptions.embeddingDimensions,
+                                networkOptions.maxLength,
+                                maxFeatures,
+                                minCount,
+                                networkOptions.batchSize,
+                                epochs,
+                                networkOptions.learningRate,
+                                seed,
+                                workers,
+                                seq2seq ? LstmObjective.seq2seq : LstmObjective.retrieval
+                        )
+                );
                 case cnn -> cnnBackend.train(
                         input,
                         output,
                         limit,
-                        cnnOptions.parameters(dimensions, maxFeatures, minCount, epochs, seed, workers)
+                        networkOptions.parameters(dimensions, maxFeatures, minCount, epochs, seed, workers)
                 );
             };
             specification
@@ -181,13 +229,12 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         }
     }
 
-    private static final class CnnOptions {
+    private static final class NetworkOptions {
 
-        private static final String[] NAMES = {"--embedding-dimensions", "--filters", "--kernel-size",
-                "--max-length", "--batch-size", "--learning-rate", "--temperature", "--validation-fraction",
-                "--pair-sampling"};
+        private static final String[] CNN_ONLY = {"--filters", "--kernel-size", "--temperature",
+                "--validation-fraction", "--pair-sampling"};
 
-        @Option(names = "--embedding-dimensions", defaultValue = "32", description = "CNN: размер вектора слова.")
+        @Option(names = "--embedding-dimensions", defaultValue = "32", description = "CNN/LSTM: размер вектора слова.")
         private int embeddingDimensions;
 
         @Option(names = "--filters", defaultValue = "32", description = "CNN: число свёрточных фильтров.")
@@ -196,17 +243,21 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         @Option(names = "--kernel-size", defaultValue = "3", description = "CNN: нечётная ширина свёртки.")
         private int kernelSize;
 
-        @Option(names = "--max-length", defaultValue = "96", description = "CNN: предел токенов фрагмента и поиска.")
+        @Option(
+                names = "--max-length",
+                defaultValue = "96",
+                description = "CNN/LSTM: предел токенов фрагмента и поиска."
+        )
         private int maxLength;
 
         @Option(
                 names = "--batch-size",
                 defaultValue = "16",
-                description = "CNN: документов в пакете (по два фрагмента)."
+                description = "CNN/LSTM: документов в пакете."
         )
         private int batchSize;
 
-        @Option(names = "--learning-rate", defaultValue = "0.003", description = "CNN: скорость Adam.")
+        @Option(names = "--learning-rate", defaultValue = "0.003", description = "CNN/LSTM: скорость Adam.")
         private double learningRate;
 
         @Option(names = "--temperature", defaultValue = "0.1", description = "CNN: температура NT-Xent.")
@@ -272,14 +323,8 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         @Spec
         private CommandSpec specification;
 
-        @Option(names = "--model", required = true, description = "Каталог сохранённой модели.")
-        private Path model;
-
-        @Option(names = "--algorithm", defaultValue = "word2vec", description = "Алгоритм: ${COMPLETION-CANDIDATES}.")
-        private Algorithm algorithm;
-
-        @Option(names = "--query", required = true, description = "Текст запроса.")
-        private String query;
+        @Mixin
+        private final QueryOptions options = new QueryOptions();
 
         @Option(names = "--top", defaultValue = "5", description = "Количество результатов.")
         private int top;
@@ -287,7 +332,7 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         /** Выводит результаты, cosine и покрытие запроса в JSON. */
         @Override
         public Integer call() throws Exception {
-            var result = backends.require(algorithm).open(model).search(query, top);
+            var result = options.search(backends, top);
             specification
                     .commandLine()
                     .getOut()
@@ -297,4 +342,48 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         }
     }
 
+    /** Ответ по первому документу в выдаче выбранного анализатора. */
+    @Component
+    @Command(
+            name = "generate",
+            mixinStandardHelpOptions = true,
+            showDefaultValues = true,
+            description = "Сформировать ответ по шаблону с цитатой из первого найденного документа."
+    )
+    @RequiredArgsConstructor
+    public static class GenerateCommand implements Callable<Integer> {
+
+        private final BackendRegistry backends;
+
+        @Spec
+        private CommandSpec specification;
+
+        @Mixin
+        private final QueryOptions options = new QueryOptions();
+
+        /** Выводит текст ответа или сообщение о пустой выдаче. */
+        @Override
+        public Integer call() throws IOException {
+            var result = options.search(backends, 1);
+            specification.commandLine().getOut().println(TemplateGenerator.generate(options.query, result));
+
+            return 0;
+        }
+    }
+
+    private static final class QueryOptions {
+
+        @Option(names = "--model", required = true, description = "Каталог сохранённой модели.")
+        private Path model;
+
+        @Option(names = "--algorithm", defaultValue = "word2vec", description = "Алгоритм: ${COMPLETION-CANDIDATES}.")
+        private Algorithm algorithm;
+
+        @Option(names = "--query", required = true, description = "Текст запроса.")
+        private String query;
+
+        private SearchResult search(BackendRegistry backends, int top) throws IOException {
+            return backends.require(algorithm).open(model).search(query, top);
+        }
+    }
 }

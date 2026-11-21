@@ -8,9 +8,10 @@
 | Лабораторная работа №2 | Python | Прототип семантического анализатора на основе LSA                    | [Инструкция](python/Laba2/README.md), [отчёт](python/Laba2/Laba2.md)         |
 | Лабораторная работа №3 | Java   | Семантический анализ документов: LSA и Word2Vec                      | [Инструкция](java/laba3/README.md), [отчёт](java/laba3/Laba3.md)             |
 | Лабораторная работа №4 | Java   | Семантический анализ документов: LSA, Word2Vec и CNN                 | [Инструкция](java/semantic-analyzer/README.md), [отчёт](java/laba4/Laba4.md) |
+| Лабораторная работа №5 | Java   | Семантический поиск на основе LSTM и шаблонная генерация текста      | [Инструкция](java/semantic-analyzer/README.md), [отчёт](java/laba5/Laba5.md) |
 
 ## Каталоги
 
 - [Python](python/README.md) — выполненные работы, общие модули и зависимости.
 - [Java](java/README.md) — каталог для работ на Java.
-- [Семантический анализатор](java/semantic-analyzer/README.md) — общее приложение работ №3 и №4.
+- [Семантический анализатор](java/semantic-analyzer/README.md) — общее приложение работ №3–5.

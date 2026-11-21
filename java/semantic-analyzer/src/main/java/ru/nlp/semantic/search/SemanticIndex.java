@@ -3,7 +3,7 @@ package ru.nlp.semantic.search;
 import java.util.List;
 import java.util.Set;
 
-import ru.nlp.semantic.model.search.SearchHit;
+import ru.nlp.semantic.search.dto.SearchHit;
 
 /** Поиск по готовым нормализованным векторам, независимый от способа их получения. */
 public interface SemanticIndex {

@@ -14,8 +14,8 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Document;
 
 import lombok.RequiredArgsConstructor;
 

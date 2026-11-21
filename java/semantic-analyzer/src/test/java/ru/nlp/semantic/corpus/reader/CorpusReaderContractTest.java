@@ -17,7 +17,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import ru.nlp.semantic.TestComponents;
 import ru.nlp.semantic.config.JsonConfiguration;
-import ru.nlp.semantic.model.corpus.Document;
+import ru.nlp.semantic.corpus.dto.Document;
 
 class CorpusReaderContractTest {
 

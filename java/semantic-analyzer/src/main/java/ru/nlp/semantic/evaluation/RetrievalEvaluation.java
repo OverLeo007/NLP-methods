@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -16,17 +16,16 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ru.nlp.semantic.backend.BackendRegistry;
+import ru.nlp.semantic.evaluation.dto.EvaluationCollection;
+import ru.nlp.semantic.evaluation.dto.EvaluationReport;
+import ru.nlp.semantic.evaluation.dto.EvaluationSummary;
+import ru.nlp.semantic.evaluation.dto.EvaluationTarget;
+import ru.nlp.semantic.evaluation.dto.ModelEvaluation;
+import ru.nlp.semantic.evaluation.dto.QueryEvaluation;
+import ru.nlp.semantic.evaluation.dto.RelevanceJudgment;
 import ru.nlp.semantic.exception.InvalidInputException;
 import ru.nlp.semantic.io.FileChecksums;
-import ru.nlp.semantic.model.analysis.Algorithm;
-import ru.nlp.semantic.model.evaluation.EvaluationCollection;
-import ru.nlp.semantic.model.evaluation.EvaluationReport;
-import ru.nlp.semantic.model.evaluation.EvaluationSummary;
-import ru.nlp.semantic.model.evaluation.EvaluationTarget;
-import ru.nlp.semantic.model.evaluation.ModelEvaluation;
-import ru.nlp.semantic.model.evaluation.QueryEvaluation;
-import ru.nlp.semantic.model.evaluation.RelevanceJudgment;
+import ru.nlp.semantic.model.BackendRegistry;
 import ru.nlp.semantic.runtime.NativeRuntime;
 import ru.nlp.semantic.runtime.RuntimeMetadata;
 import ru.nlp.semantic.runtime.StageTimings;
@@ -58,15 +57,15 @@ public class RetrievalEvaluation {
             throw new InvalidInputException("Каталог оценки уже существует: " + output);
         }
         var targets = List.copyOf(models);
-        var algorithms = EnumSet.noneOf(Algorithm.class);
+        var directories = new HashSet<Path>();
 
         if (targets.isEmpty()) {
             throw new InvalidInputException("Для оценки нужна хотя бы одна модель");
         }
 
         for (var target : targets) {
-            if (!algorithms.add(target.algorithm())) {
-                throw new InvalidInputException("Повторная модель алгоритма: " + target.algorithm());
+            if (!directories.add(target.directory().toRealPath())) {
+                throw new InvalidInputException("Каталог модели указан повторно: " + target.directory());
             }
         }
 
@@ -113,6 +112,7 @@ public class RetrievalEvaluation {
                 evaluated.stream().map(
                         model -> new EvaluationSummary.ModelSummary(
                                 model.algorithm(),
+                                model.model(),
                                 model.zeroDocuments(),
                                 model.metrics()
                         )

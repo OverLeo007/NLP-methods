@@ -13,12 +13,12 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import ru.nlp.semantic.corpus.dto.Document;
+import ru.nlp.semantic.evaluation.dto.EvaluationQuery;
+import ru.nlp.semantic.evaluation.dto.RelevanceJudgment;
+import ru.nlp.semantic.evaluation.dto.SubsetParameters;
+import ru.nlp.semantic.evaluation.dto.SubsetStatistics;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Document;
-import ru.nlp.semantic.model.evaluation.EvaluationQuery;
-import ru.nlp.semantic.model.evaluation.RelevanceJudgment;
-import ru.nlp.semantic.model.evaluation.SubsetParameters;
-import ru.nlp.semantic.model.evaluation.SubsetStatistics;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
 
 import lombok.RequiredArgsConstructor;

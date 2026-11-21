@@ -21,7 +21,7 @@ gradlew.bat build spotlessCheck
 
 ## Запуск
 
-Работы №3 и №4 используют общее CLI-приложение `semantic-analyzer`.
+Работы №3–5 используют общее CLI-приложение `semantic-analyzer`.
 Соберите модуль, затем передайте раннеру его имя и аргументы приложения:
 
 ```bat
@@ -49,3 +49,4 @@ java "-Dfile.encoding=UTF-8" "-Dstdout.encoding=UTF-8" "-Dstderr.encoding=UTF-8"
   команды, форматы данных и примеры.
 - №3: [инструкция (легаси)](laba3/README.md), [отчёт](laba3/Laba3.md).
 - №4: [инструкция](semantic-analyzer/README.md), [отчёт](laba4/Laba4.md).
+- №5: [инструкция](semantic-analyzer/README.md), [отчёт](laba5/Laba5.md).

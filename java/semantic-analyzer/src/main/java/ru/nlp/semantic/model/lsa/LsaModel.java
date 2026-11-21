@@ -2,6 +2,8 @@ package ru.nlp.semantic.model.lsa;
 
 import java.util.List;
 
+import ru.nlp.semantic.model.lsa.dto.LsaParameters;
+
 /** Обученные преобразования LSA без документов, файлов и поискового индекса. */
 public record LsaModel(
         /** Словарь в порядке строк проекции. */

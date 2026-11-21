@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import ru.nlp.semantic.model.corpus.Document;
-import ru.nlp.semantic.model.search.SearchHit;
+import ru.nlp.semantic.corpus.dto.Document;
+import ru.nlp.semantic.search.dto.SearchHit;
 
 class CosineIndexTest {
 

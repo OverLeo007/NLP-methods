@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
-import ru.nlp.semantic.model.corpus.Document;
+import ru.nlp.semantic.corpus.dto.Document;
 
 /** Контракт потокового чтения исходных документов без очистки, нормализации и отбора. */
 public interface CorpusReader {

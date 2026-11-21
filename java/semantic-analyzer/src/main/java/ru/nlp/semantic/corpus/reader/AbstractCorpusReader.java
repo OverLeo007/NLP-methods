@@ -6,8 +6,8 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Document;
 
 /** Общий цикл чтения, ранняя остановка, подсчёт записей и закрытие источника. */
 public abstract class AbstractCorpusReader implements CorpusReader {
