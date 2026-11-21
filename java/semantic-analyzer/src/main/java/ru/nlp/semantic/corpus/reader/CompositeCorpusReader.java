@@ -8,8 +8,8 @@ import java.util.function.Predicate;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Document;
 
 import lombok.RequiredArgsConstructor;
 

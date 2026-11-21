@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import ru.nlp.semantic.evaluation.dto.EvaluationQuery;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.evaluation.EvaluationQuery;
-import ru.nlp.semantic.model.search.SearchHit;
-import ru.nlp.semantic.model.search.SearchResult;
+import ru.nlp.semantic.search.dto.SearchHit;
+import ru.nlp.semantic.search.dto.SearchResult;
 
 class RetrievalMetricsCalculatorTest {
 

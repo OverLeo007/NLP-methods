@@ -14,15 +14,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.corpus.reader.CorpusReader;
+import ru.nlp.semantic.evaluation.dto.EvaluationQuery;
+import ru.nlp.semantic.evaluation.dto.RiaSubsetManifest;
+import ru.nlp.semantic.evaluation.dto.RiaSubsetSummary;
+import ru.nlp.semantic.evaluation.dto.SubsetParameters;
 import ru.nlp.semantic.exception.CorpusReadException;
 import ru.nlp.semantic.exception.InvalidInputException;
 import ru.nlp.semantic.io.FileChecksums;
-import ru.nlp.semantic.model.corpus.Document;
-import ru.nlp.semantic.model.evaluation.EvaluationQuery;
-import ru.nlp.semantic.model.evaluation.RiaSubsetManifest;
-import ru.nlp.semantic.model.evaluation.RiaSubsetSummary;
-import ru.nlp.semantic.model.evaluation.SubsetParameters;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
 
 import lombok.RequiredArgsConstructor;

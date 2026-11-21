@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import ru.nlp.semantic.evaluation.dto.EvaluationQuery;
+import ru.nlp.semantic.evaluation.dto.QueryEvaluation;
+import ru.nlp.semantic.evaluation.dto.RetrievalMetrics;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.evaluation.EvaluationQuery;
-import ru.nlp.semantic.model.evaluation.QueryEvaluation;
-import ru.nlp.semantic.model.evaluation.RetrievalMetrics;
-import ru.nlp.semantic.model.search.SearchHit;
-import ru.nlp.semantic.model.search.SearchResult;
+import ru.nlp.semantic.search.dto.SearchHit;
+import ru.nlp.semantic.search.dto.SearchResult;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

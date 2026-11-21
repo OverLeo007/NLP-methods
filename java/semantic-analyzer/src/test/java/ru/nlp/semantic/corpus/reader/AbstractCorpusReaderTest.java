@@ -8,7 +8,7 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
-import ru.nlp.semantic.model.corpus.Document;
+import ru.nlp.semantic.corpus.dto.Document;
 
 class AbstractCorpusReaderTest {
 

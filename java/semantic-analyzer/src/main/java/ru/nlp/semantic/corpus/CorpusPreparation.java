@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import ru.nlp.semantic.corpus.dto.PreparedCorpus;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.PreparedCorpus;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
 
 import lombok.RequiredArgsConstructor;

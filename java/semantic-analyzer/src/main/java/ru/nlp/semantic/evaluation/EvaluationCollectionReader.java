@@ -10,13 +10,13 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.corpus.reader.CorpusReader;
+import ru.nlp.semantic.evaluation.dto.EvaluationCollection;
+import ru.nlp.semantic.evaluation.dto.EvaluationQuery;
+import ru.nlp.semantic.evaluation.dto.RiaSubsetManifest;
 import ru.nlp.semantic.exception.InvalidInputException;
 import ru.nlp.semantic.io.FileChecksums;
-import ru.nlp.semantic.model.corpus.Document;
-import ru.nlp.semantic.model.evaluation.EvaluationCollection;
-import ru.nlp.semantic.model.evaluation.EvaluationQuery;
-import ru.nlp.semantic.model.evaluation.RiaSubsetManifest;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
 
 import lombok.RequiredArgsConstructor;
