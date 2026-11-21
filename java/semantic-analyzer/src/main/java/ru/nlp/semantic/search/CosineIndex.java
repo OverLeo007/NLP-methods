@@ -13,6 +13,8 @@ import ru.nlp.semantic.model.search.SearchHit;
 /** Неизменяемый индекс с полным перебором документов и cosine-ранжированием. */
 public final class CosineIndex implements SemanticIndex {
 
+    private static final int EXCERPT_LIMIT = 180;
+
     private final List<Entry> entries;
 
     private final int dimensions;
@@ -69,13 +71,19 @@ public final class CosineIndex implements SemanticIndex {
             }
 
             var document = entry.document();
-            String excerpt = document.text().replaceAll("\\s+", " ");
+            String text = document.text().replaceAll("\\s+", " ");
+            int end = Math.min(EXCERPT_LIMIT, text.length());
+
+            if (end < text.length() && Character.isHighSurrogate(text.charAt(end - 1))) {
+                end--;
+            }
             hits.add(
                     new SearchHit(
                             document.id(),
                             document.title(),
                             Math.clamp(similarity, -1, 1),
-                            excerpt.substring(0, Math.min(180, excerpt.length()))
+                            text.substring(0, end),
+                            end < text.length()
                     )
             );
         }

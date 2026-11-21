@@ -1,5 +1,6 @@
 package ru.nlp.semantic;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -13,9 +14,11 @@ import ru.nlp.semantic.backend.BackendRegistry;
 import ru.nlp.semantic.backend.ModelBackend;
 import ru.nlp.semantic.cnn.PairSampling;
 import ru.nlp.semantic.exception.InvalidInputException;
+import ru.nlp.semantic.generation.TemplateGenerator;
 import ru.nlp.semantic.model.analysis.Algorithm;
 import ru.nlp.semantic.model.cnn.CnnParameters;
 import ru.nlp.semantic.model.lsa.LsaParameters;
+import ru.nlp.semantic.model.search.SearchResult;
 import ru.nlp.semantic.model.training.TrainingSummary;
 import ru.nlp.semantic.model.word2vec.Word2VecParameters;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
@@ -29,14 +32,14 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.ScopeType;
 import picocli.CommandLine.Spec;
 
-/** Корневая команда нормализации, обучения и поиска. */
+/** Корневая команда нормализации, обучения, поиска и шаблонной генерации. */
 @Component
 @Command(
         name = "semantic-analyzer",
         mixinStandardHelpOptions = true,
         description = "Семантический анализ документов: Word2Vec, LSA и CNN.",
         subcommands = {SemanticAnalyzerCommand.TrainCommand.class, SemanticAnalyzerCommand.SearchCommand.class,
-                PrepareRiaCommand.class,
+                SemanticAnalyzerCommand.GenerateCommand.class, PrepareRiaCommand.class,
                 EvaluateCommand.class},
         version = "SemanticAnalyzer 0.1.0"
 )
@@ -272,14 +275,8 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         @Spec
         private CommandSpec specification;
 
-        @Option(names = "--model", required = true, description = "Каталог сохранённой модели.")
-        private Path model;
-
-        @Option(names = "--algorithm", defaultValue = "word2vec", description = "Алгоритм: ${COMPLETION-CANDIDATES}.")
-        private Algorithm algorithm;
-
-        @Option(names = "--query", required = true, description = "Текст запроса.")
-        private String query;
+        @Mixin
+        private final QueryOptions options = new QueryOptions();
 
         @Option(names = "--top", defaultValue = "5", description = "Количество результатов.")
         private int top;
@@ -287,7 +284,7 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         /** Выводит результаты, cosine и покрытие запроса в JSON. */
         @Override
         public Integer call() throws Exception {
-            var result = backends.require(algorithm).open(model).search(query, top);
+            var result = options.search(backends, top);
             specification
                     .commandLine()
                     .getOut()
@@ -297,4 +294,48 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         }
     }
 
+    /** Ответ по первому документу в выдаче выбранного анализатора. */
+    @Component
+    @Command(
+            name = "generate",
+            mixinStandardHelpOptions = true,
+            showDefaultValues = true,
+            description = "Сформировать ответ по шаблону с цитатой из первого найденного документа."
+    )
+    @RequiredArgsConstructor
+    public static class GenerateCommand implements Callable<Integer> {
+
+        private final BackendRegistry backends;
+
+        @Spec
+        private CommandSpec specification;
+
+        @Mixin
+        private final QueryOptions options = new QueryOptions();
+
+        /** Выводит текст ответа или сообщение о пустой выдаче. */
+        @Override
+        public Integer call() throws IOException {
+            var result = options.search(backends, 1);
+            specification.commandLine().getOut().println(TemplateGenerator.generate(options.query, result));
+
+            return 0;
+        }
+    }
+
+    private static final class QueryOptions {
+
+        @Option(names = "--model", required = true, description = "Каталог сохранённой модели.")
+        private Path model;
+
+        @Option(names = "--algorithm", defaultValue = "word2vec", description = "Алгоритм: ${COMPLETION-CANDIDATES}.")
+        private Algorithm algorithm;
+
+        @Option(names = "--query", required = true, description = "Текст запроса.")
+        private String query;
+
+        private SearchResult search(BackendRegistry backends, int top) throws IOException {
+            return backends.require(algorithm).open(model).search(query, top);
+        }
+    }
 }
