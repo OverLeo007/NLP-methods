@@ -16,9 +16,9 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ru.nlp.semantic.evaluation.dto.EvaluationQuery;
+import ru.nlp.semantic.evaluation.dto.RelevanceJudgment;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.evaluation.EvaluationQuery;
-import ru.nlp.semantic.model.evaluation.RelevanceJudgment;
 
 import lombok.RequiredArgsConstructor;
 

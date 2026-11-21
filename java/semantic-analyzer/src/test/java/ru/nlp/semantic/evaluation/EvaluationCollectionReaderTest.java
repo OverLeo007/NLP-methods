@@ -17,11 +17,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ru.nlp.semantic.TestComponents;
 import ru.nlp.semantic.config.JsonConfiguration;
+import ru.nlp.semantic.evaluation.dto.EvaluationQuery;
+import ru.nlp.semantic.evaluation.dto.RelevanceJudgment;
+import ru.nlp.semantic.evaluation.dto.SubsetParameters;
 import ru.nlp.semantic.exception.InvalidInputException;
 import ru.nlp.semantic.io.FileChecksums;
-import ru.nlp.semantic.model.evaluation.EvaluationQuery;
-import ru.nlp.semantic.model.evaluation.RelevanceJudgment;
-import ru.nlp.semantic.model.evaluation.SubsetParameters;
 
 class EvaluationCollectionReaderTest {
 

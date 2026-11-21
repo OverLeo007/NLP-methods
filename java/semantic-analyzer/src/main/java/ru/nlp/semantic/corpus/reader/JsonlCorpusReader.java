@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Document;
 
 import lombok.RequiredArgsConstructor;
 

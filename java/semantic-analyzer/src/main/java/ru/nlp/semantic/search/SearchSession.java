@@ -3,11 +3,11 @@ package ru.nlp.semantic.search;
 import java.util.List;
 import java.util.Set;
 
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Document;
-import ru.nlp.semantic.model.search.SearchResult;
+import ru.nlp.semantic.model.base.vectorization.TextVectorizer;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
-import ru.nlp.semantic.vectorization.TextVectorizer;
+import ru.nlp.semantic.search.dto.SearchResult;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

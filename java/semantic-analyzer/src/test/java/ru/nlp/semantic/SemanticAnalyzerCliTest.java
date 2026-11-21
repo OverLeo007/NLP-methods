@@ -15,13 +15,12 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystem;
 
 import ru.nlp.semantic.config.JsonConfiguration;
-import ru.nlp.semantic.model.analysis.Algorithm;
+import ru.nlp.semantic.model.Algorithm;
 
 class SemanticAnalyzerCliTest {
 
@@ -303,8 +302,9 @@ class SemanticAnalyzerCliTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void evaluatesSelectedSavedModelsWithoutFilteringOovOrOverwritingResults(boolean includeCnn) throws Exception {
+    @CsvSource({"false,false", "true,false", "false,true", "true,true"})
+    void evaluatesSelectedSavedModelsWithoutFilteringOovOrOverwritingResults(boolean includeCnn, boolean includeLstm)
+            throws Exception {
         var mapper = new JsonConfiguration().jsonMapper();
         var source = directory.resolve("corpus.jsonl");
         var queries = directory.resolve("queries.jsonl");
@@ -350,9 +350,14 @@ class SemanticAnalyzerCliTest {
         var models = new java.util.EnumMap<Algorithm, Path>(Algorithm.class);
 
         var algorithms = new ArrayList<>(List.of(Algorithm.lsa, Algorithm.word2vec));
+        var seq2seqModel = directory.resolve("sequence-to-sequence");
 
         if (includeCnn) {
             algorithms.add(Algorithm.cnn);
+        }
+
+        if (includeLstm) {
+            algorithms.add(Algorithm.lstm);
         }
 
         for (var algorithm : algorithms) {
@@ -374,7 +379,7 @@ class SemanticAnalyzerCliTest {
             );
 
             switch (algorithm) {
-                case word2vec -> args.addAll(List.of("--epochs", "1", "--min-count", "1"));
+                case word2vec, lstm -> args.addAll(List.of("--epochs", "1", "--min-count", "1"));
                 case lsa -> {
                 }
                 case cnn -> args.addAll(
@@ -395,6 +400,16 @@ class SemanticAnalyzerCliTest {
 
             assertThat(execute(args.toArray(String[]::new)).exitCode()).isZero();
             models.put(algorithm, model);
+
+            if (algorithm == Algorithm.lstm && includeCnn) {
+                args.set(args.indexOf("--output") + 1, seq2seqModel.toString());
+                args.add("--seq2seq");
+                assertThat(execute(args.toArray(String[]::new)).exitCode()).isZero();
+            }
+        }
+
+        if (includeCnn && includeLstm) {
+            algorithms.add(Algorithm.lstm);
         }
 
         for (var verbose : List.of(false, true)) {
@@ -417,8 +432,25 @@ class SemanticAnalyzerCliTest {
                 args.addAll(List.of("--cnn-model", models.get(Algorithm.cnn).toString()));
             }
 
+            if (includeLstm) {
+                args.addAll(List.of("--lstm-model", models.get(Algorithm.lstm).toString()));
+
+                if (includeCnn) {
+                    args.addAll(List.of("--lstm-model", seq2seqModel.toString()));
+                }
+            }
+
             if (verbose) {
                 args.add("--verbose");
+            }
+
+            if (includeLstm && !verbose) {
+                var repeated = new ArrayList<>(args);
+                repeated.addAll(List.of("--lstm-model", models.get(Algorithm.lstm).resolve(".").toString()));
+                var rejected = execute(repeated.toArray(String[]::new));
+                assertThat(rejected.exitCode()).isEqualTo(1);
+                assertThat(rejected.stderr()).contains("Каталог модели указан повторно");
+                assertThat(output).doesNotExist();
             }
             var result = execute(args.toArray(String[]::new));
             assertThat(result.exitCode()).isZero();
@@ -438,13 +470,17 @@ class SemanticAnalyzerCliTest {
 
             for (int i = 0; i < algorithms.size(); i++) {
                 assertThat(report.path("models").get(i).path("algorithm").asText()).isEqualTo(algorithms.get(i).name());
+                assertThat(summary.path("models").get(i).path("model"))
+                        .isEqualTo(report.path("models").get(i).path("model"));
             }
 
-            assertThat(report.path("measurement").asText()).contains(
-                    includeCnn
-                            ? "Sequential LSA then Word2Vec then CNN;"
-                            : "Sequential LSA then Word2Vec;"
-            );
+            if (includeCnn && includeLstm) {
+                assertThat(report.at("/models/3/metadata/parameters/objective").asText()).isEqualTo("retrieval");
+                assertThat(report.at("/models/4/metadata/parameters/objective").asText()).isEqualTo("seq2seq");
+            }
+
+            var expectedOrder = String.join(" then ", algorithms.stream().map(Algorithm::displayName).toList());
+            assertThat(report.path("measurement").asText()).startsWith("Sequential " + expectedOrder + ";");
 
             for (var evaluated : report.path("models")) {
                 assertThat(evaluated.path("metrics").path("queries").asInt()).isEqualTo(4);

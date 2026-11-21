@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 
+import ru.nlp.semantic.model.cnn.dto.CnnParameters;
+import ru.nlp.semantic.model.cnn.dto.CnnTrainingStatistics;
+
 /** Обученное состояние CNN без файлов, корпуса и поискового индекса. */
 public record CnnModel(
         /** Общий кодировщик документов и запросов; после обучения используется только для чтения. */

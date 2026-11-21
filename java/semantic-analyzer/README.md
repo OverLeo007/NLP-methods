@@ -3,7 +3,7 @@
 Приложение обучает LSA, Word2Vec, CNN и LSTM, сохраняет модели и ищет документы
 по текстовому запросу. Команда `generate` формирует ответ с цитатой из первого
 найденного документа. Команда `evaluate` сравнивает LSA и Word2Vec
-по Recall@5 и MRR@10. Для включения CNN добавьте `--cnn-model`.
+по Recall@5 и MRR@10. Для включения CNN укажите `--cnn-model`, для LSTM — `--lstm-model`.
 
 [Корневой README](../../readme.md) содержит список работ.
 
@@ -72,13 +72,15 @@ run-lab.cmd semantic-analyzer search --algorithm cnn --model semantic-analyzer/a
 
 ### Пример LSTM
 
-Обучите автокодировщик sequence-to-sequence на корпусе из шести документов.
+По умолчанию LSTM обучается искать близкие фрагменты документов. Чтобы обучить
+автокодировщик sequence-to-sequence, добавьте к `train` флаг `--seq2seq`.
+В примере используется корпус из шести документов.
 Кодировщик LSTM сжимает последовательность в один вектор. Декодер LSTM получает
 этот вектор на каждом шаге и учится восстанавливать исходные токены по порядку.
 Для поиска приложение использует последний скрытый вектор кодировщика.
 
 ```bat
-run-lab.cmd semantic-analyzer train --algorithm lstm --input semantic-analyzer/examples/related-documents.csv --output semantic-analyzer/artifacts/lstm-demo --max-features 100 --min-count 1 --dimensions 12 --embedding-dimensions 12 --max-length 16 --epochs 40 --batch-size 6 --learning-rate 0.01
+run-lab.cmd semantic-analyzer train --algorithm lstm --seq2seq --input semantic-analyzer/examples/related-documents.csv --output semantic-analyzer/artifacts/lstm-demo --max-features 100 --min-count 1 --dimensions 12 --embedding-dimensions 12 --max-length 16 --epochs 40 --batch-size 6 --learning-rate 0.01
 run-lab.cmd semantic-analyzer search --algorithm lstm --model semantic-analyzer/artifacts/lstm-demo --query "Ракеты спутники" --top 3
 ```
 
@@ -160,10 +162,17 @@ run-lab.cmd semantic-analyzer --text "Ёлками и машины НЕ были
 
 Для LSTM `--embedding-dimensions` задаёт размер вектора слова (по умолчанию 32),
 `--max-length` — длину префикса в токенах (96), `--batch-size` — число документов
-в пакете (16), `--learning-rate` — скорость Adam (0,003). Словарь строится по
-префиксам обучающих документов. Позиции заполнения исключаются маской входа.
-Декодер вычисляет ошибку только на позициях известных слов. Для обучения нужны
-как минимум два термина и два документа с известными токенами.
+в пакете (16), `--learning-rate` — скорость Adam (0,003). При поиске оба режима
+используют первые `--max-length` токенов. Режим определяется по сохранённой модели.
+
+- По умолчанию словарь строится по полным текстам. Пять эпох skip-gram с окном 5
+  на том же корпусе дают начальные векторы слов. Затем LSTM учится сближать
+  короткий и длинный фрагменты одной статьи и различать фрагменты разных статей
+  в пакете (NT-Xent, температура 0,1). Вектор текста — среднее скрытых состояний
+  LSTM по позициям без заполнения. Нужны минимум две различные статьи в пакете.
+- С флагом `--seq2seq` словарь строится по префиксам. Последнее состояние LSTM
+  поступает в декодер, который восстанавливает известные токены. Старые модели
+  этого режима загружаются командами `search`, `generate` и `evaluate`.
 
 ### Входные данные
 
@@ -241,7 +250,7 @@ run-lab.cmd semantic-analyzer generate --algorithm cnn --model semantic-analyzer
 анализаторов. Чтобы проверить, как меняется источник, обучите LSTM на том же CSV.
 
 ```bat
-run-lab.cmd semantic-analyzer train --algorithm lstm --input my-data/documents.csv --output semantic-analyzer/artifacts/custom-lstm --max-features 100 --min-count 1 --dimensions 12 --embedding-dimensions 12 --max-length 16 --epochs 40 --batch-size 6 --learning-rate 0.01
+run-lab.cmd semantic-analyzer train --algorithm lstm --seq2seq --input my-data/documents.csv --output semantic-analyzer/artifacts/custom-lstm --max-features 100 --min-count 1 --dimensions 12 --embedding-dimensions 12 --max-length 16 --epochs 40 --batch-size 6 --learning-rate 0.01
 run-lab.cmd semantic-analyzer generate --algorithm lstm --model semantic-analyzer/artifacts/custom-lstm --query "Docker контейнер"
 ```
 
@@ -365,6 +374,30 @@ run-lab.cmd semantic-analyzer train --verbose --algorithm word2vec --input seman
 run-lab.cmd semantic-analyzer train --verbose --algorithm cnn --input semantic-analyzer/artifacts/ria-evaluation/corpus.csv --output semantic-analyzer/artifacts/ria-cnn-short-long --limit 10000 --dimensions 100 --embedding-dimensions 32 --filters 64 --kernel-size 3 --max-length 128 --max-features 20000 --min-count 2 --batch-size 32 --epochs 9 --learning-rate 0.003 --temperature 0.2 --seed 42 --workers 1 --validation-fraction 0 --pair-sampling short_long
 ```
 
+Обучите LSTM с декодером на том же корпусе. Для этого запуска выбраны префикс из 32 токенов,
+словарь из 2000 терминов и три эпохи. Ограничения длины и словаря сокращают
+размер выходной матрицы декодера при обучении на CPU.
+
+```bat
+run-lab.cmd semantic-analyzer train --verbose --algorithm lstm --seq2seq --input semantic-analyzer/artifacts/ria-evaluation/corpus.csv --output semantic-analyzer/artifacts/ria-lstm-reference --limit 10000 --dimensions 32 --embedding-dimensions 24 --max-length 32 --max-features 2000 --min-count 2 --batch-size 32 --epochs 3 --learning-rate 0.003 --seed 42 --workers 1
+```
+
+В манифесте sequence-to-sequence поля `initialTokenLoss` и `finalTokenLoss` содержат среднюю
+кросс-энтропию на известный токен первого обучающего пакета до и после обучения.
+В запуске на РИА она снизилась с 7,600 до 6,694. При индексации один документ
+получил нулевой вектор. Качество поиска измерьте отдельно командой `evaluate`.
+
+Обучите две поисковые LSTM. Первая использует те же размеры, предел словаря,
+длину и число эпох LSTM, что и автокодировщик. У второй шире словарь,
+длиннее вход и больше размерность скрытого состояния. Обе используют
+только тексты статей. Поля `initialPairLoss` и `finalPairLoss` относятся
+к одному фиксированному пакету пар до и после обучения LSTM.
+
+```bat
+run-lab.cmd semantic-analyzer train --verbose --algorithm lstm --input semantic-analyzer/artifacts/ria-evaluation/corpus.csv --limit 10000 --min-count 2 --batch-size 32 --seed 42 --workers 1 --output semantic-analyzer/artifacts/ria-lstm-retrieval-matched --dimensions 32 --embedding-dimensions 24 --max-length 32 --max-features 2000 --epochs 3 --learning-rate 0.003
+run-lab.cmd semantic-analyzer train --verbose --algorithm lstm --input semantic-analyzer/artifacts/ria-evaluation/corpus.csv --limit 10000 --min-count 2 --batch-size 32 --seed 42 --workers 1 --output semantic-analyzer/artifacts/ria-lstm-retrieval --dimensions 64 --embedding-dimensions 64 --max-length 96 --max-features 30000 --epochs 4 --learning-rate 0.001
+```
+
 Для повторения условия замеров `-Xmx4g` используйте
 прямой вызов Java из [общей инструкции](../README.md).
 Раннер использует стандартный размер heap JVM.
@@ -378,16 +411,15 @@ run-lab.cmd semantic-analyzer train --verbose --algorithm cnn --input semantic-a
 run-lab.cmd semantic-analyzer evaluate --verbose --collection semantic-analyzer/artifacts/ria-evaluation --lsa-model semantic-analyzer/artifacts/ria-lsa-reference --word2vec-model semantic-analyzer/artifacts/ria-word2vec-reference --output semantic-analyzer/artifacts/ria-comparison
 ```
 
-Для сравнения всех трёх методов передайте сохранённую CNN `short_long`,
-обученную по команде выше:
+Чтобы сравнить четыре метода и оба режима LSTM за один запуск, повторите `--lstm-model` для каждого каталога.
 
 ```bat
-run-lab.cmd semantic-analyzer evaluate --verbose --collection semantic-analyzer/artifacts/ria-evaluation --lsa-model semantic-analyzer/artifacts/ria-lsa-reference --word2vec-model semantic-analyzer/artifacts/ria-word2vec-reference --cnn-model semantic-analyzer/artifacts/ria-cnn-short-long --output semantic-analyzer/artifacts/ria-final-three-model-comparison
+run-lab.cmd semantic-analyzer evaluate --verbose --collection semantic-analyzer/artifacts/ria-evaluation --lsa-model semantic-analyzer/artifacts/ria-lsa-reference --word2vec-model semantic-analyzer/artifacts/ria-word2vec-reference --cnn-model semantic-analyzer/artifacts/ria-cnn-short-long --lstm-model semantic-analyzer/artifacts/ria-lstm-reference --lstm-model semantic-analyzer/artifacts/ria-lstm-retrieval-matched --lstm-model semantic-analyzer/artifacts/ria-lstm-retrieval --output semantic-analyzer/artifacts/ria-lstm-objectives-comparison
 ```
 
-Параметр `--cnn-model` необязателен: без него оцениваются LSA и Word2Vec.
-Порядок оценки: LSA, Word2Vec, затем CNN при её наличии. Для каждого запуска
-укажите новый каталог `--output`; `evaluate` не переобучает модели.
+Можно передать любой из параметров `--cnn-model` и `--lstm-model` или оба сразу.
+Сначала оцениваются LSA и Word2Vec, затем CNN и все LSTM в порядке аргументов.
+Для каждого запуска укажите новый каталог `--output`.
 
 Команда проверяет целостность файлов, состав коллекции и профиль нормализации.
 Порядок ID, тексты и заголовки документов должны совпадать в коллекции и всех моделях.
@@ -446,32 +478,54 @@ MRR@10 — средний обратный ранг первого релева�
 При загрузке проверяются целостность файлов, профиль нормализации и метаданные.
 Индекс восстанавливается без обучения.
 
+Если в `configuration.json` внутри `network.zip` указан прежний класс
+`ru.nlp.semantic.cnn.ContrastiveLoss`, повторите обучение CNN или поисковой LSTM
+с новым каталогом `--output`. Модели `seq2seq` используют другую функцию потерь.
+
 ## Сравнение методов
 
 LSA использует TF-IDF и усечённое SVD. Word2Vec представляет текст взвешенным
 средним векторов слов. CNN применяет свёртку к последовательности векторов слов
-и обучается на парах фрагментов одной статьи. LSTM кодирует порядок токенов и
-обучается восстанавливать их из вектора документа. Все четыре метода используют
+и обучается на парах фрагментов одной статьи. LSTM кодирует порядок токенов.
+Задачу обучения задаёт флаг `--seq2seq`. Все четыре метода используют
 одинаковую нормализацию и косинусное сходство.
 
-На общей коллекции из 10 000 статей РИА и 500 запросов получены:
+Шесть сохранённых моделей прошли оценку на 10 000 статьях РИА. Для каждого
+из 500 запросов размечена одна релевантная статья. Число попаданий показывает,
+сколько раз эта статья попала в первую пятёрку.
 
-| Показатель                             |      LSA | Word2Vec | CNN short_long |
-|----------------------------------------|---------:|---------:|---------------:|
-| Recall@5                               |    0,304 |    0,778 |          0,096 |
-| MRR@10                                 | 0,231521 | 0,649069 |       0,055890 |
-| Запросов с релевантной статьёй в top-5 |      152 |      389 |             48 |
-| Покрытие токенов запросов              |   60,08% |   97,67% |         95,23% |
-| Обучение, с                            |    13,66 |   183,46 |         526,03 |
-| Среднее время поиска, мс               |   144,04 |   142,48 |         139,77 |
+| Модель | Попаданий в top-5 | Recall@5 | MRR@10 | Покрытие токенов запросов | Обучение, с | Поиск, мс в среднем |
+|--------|------------------:|---------:|-------:|--------------------------:|------------:|--------------------:|
+| LSA | 152 | 0,304 | 0,231521 | 60,08% | 13,66 | 153,77 |
+| Word2Vec | 389 | 0,778 | 0,649069 | 97,67% | 183,46 | 163,48 |
+| CNN `short_long` | 48 | 0,096 | 0,055890 | 95,23% | 526,03 | 239,61 |
+| LSTM `seq2seq` | 1 | 0,002 | 0,002000 | 60,83% | 338,28 | 185,80 |
+| Поисковая LSTM, компактная | 126 | 0,252 | 0,186744 | 60,08% | 224,79 | 156,65 |
+| Поисковая LSTM, основная | 297 | 0,594 | 0,479976 | 97,67% | 877,39 | 149,71 |
 
-Word2Vec показала лучшие поисковые метрики. Режим `short_long` улучшил
-Recall@5 CNN с 0,038 до 0,096 относительно исходного `symmetric`, но CNN
-уступила обоим другим методам. Замеры времени относятся к одному запуску
-на CPU и не устанавливают устойчивого преимущества по скорости.
-Эти 500 запросов уже использовались в исходной оценке и диагностике;
-итоговое сравнение не является проверкой на новой слепой выборке.
-Постановка, параметры и ограничения приведены в [отчёте](../laba4/Laba4.md#35-методика-оценки-и-условия-измерений).
+При тех же размерностях векторов, лимитах словаря и длины поисковая LSTM нашла статью
+в первой пятёрке для 126 запросов, автокодировщик — для одного. Режимы различаются
+задачей обучения, инициализацией векторов слов, построением словаря и способом
+получения вектора текста. Этот замер показывает их совместный эффект.
+
+У основной поисковой LSTM словарь вырос с 2000 до 29 732 терминов, предел длины
+с 32 до 96 токенов, размер представления с 32 до 64. Также изменились число эпох
+и скорость обучения. Модель нашла 297 статей в первой пятёрке и 347 в первой десятке.
+Word2Vec при таком же покрытии токенов дала 389 попаданий в пятёрку.
+Для 271 запроса нужная статья вошла в пятёрку у обеих моделей, для 26 — только
+у поисковой LSTM, для 118 — только у Word2Vec.
+
+По запросу «украина обжаловала решение суда по иску минобороны россии» основная
+поисковая LSTM поставила размеченную статью `364354` первой. Автокодировщик выбрал
+`8838` и пропустил `364354` в первой десятке. По запросу «день в фотографиях,
+17 июля 2012 года» обе модели пропустили размеченную статью `346305` в десятке.
+При вызове `generate` первый найденный документ определяет источник цитаты.
+
+Время обучения взято из манифестов. Оно включает предварительное обучение
+векторов слов для обеих поисковых LSTM. Время поиска измерено на CPU в одном
+последовательном запуске. Запросы и qrels не участвовали в обучении поисковых LSTM.
+Эти же 500 запросов ранее использовались для оценки и диагностики в работе №4.
+Результаты характеризуют указанные модели и коллекцию.
 
 Подготовьте модели по [инструкции РИА](#подготовка-и-обучение-на-риа),
 затем выполните [единую оценку](#единая-оценка). Параметры и эксперименты

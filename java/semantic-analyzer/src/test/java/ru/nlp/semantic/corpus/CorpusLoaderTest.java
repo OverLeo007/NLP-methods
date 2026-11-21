@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import ru.nlp.semantic.TestComponents;
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.exception.CorpusReadException;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Document;
 
 class CorpusLoaderTest {
 

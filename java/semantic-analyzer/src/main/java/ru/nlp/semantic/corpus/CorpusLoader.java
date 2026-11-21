@@ -11,11 +11,11 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
+import ru.nlp.semantic.corpus.dto.Corpus;
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.corpus.reader.CorpusReader;
 import ru.nlp.semantic.exception.CorpusReadException;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Corpus;
-import ru.nlp.semantic.model.corpus.Document;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
 
 import lombok.RequiredArgsConstructor;

@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import ru.nlp.semantic.corpus.dto.Document;
 import ru.nlp.semantic.exception.InvalidInputException;
-import ru.nlp.semantic.model.corpus.Document;
-import ru.nlp.semantic.model.search.SearchHit;
+import ru.nlp.semantic.search.dto.SearchHit;
 
 /** Неизменяемый индекс с полным перебором документов и cosine-ранжированием. */
 public final class CosineIndex implements SemanticIndex {

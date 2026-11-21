@@ -3,7 +3,6 @@ package ru.nlp.semantic;
 import java.io.IOException;
 import java.util.List;
 
-import ru.nlp.semantic.backend.Word2VecBackend;
 import ru.nlp.semantic.config.JsonConfiguration;
 import ru.nlp.semantic.config.PreprocessingConfiguration;
 import ru.nlp.semantic.corpus.CorpusLoader;
@@ -13,10 +12,11 @@ import ru.nlp.semantic.corpus.reader.CorpusReader;
 import ru.nlp.semantic.corpus.reader.CsvCorpusReader;
 import ru.nlp.semantic.corpus.reader.JsonlCorpusReader;
 import ru.nlp.semantic.corpus.reader.TxtCorpusReader;
-import ru.nlp.semantic.persistence.Word2VecModelStore;
+import ru.nlp.semantic.model.word2vec.backend.Word2VecBackend;
+import ru.nlp.semantic.model.word2vec.store.Word2VecModelStore;
+import ru.nlp.semantic.model.word2vec.training.Word2VecTrainer;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
 import ru.nlp.semantic.runtime.RuntimeMetadata;
-import ru.nlp.semantic.training.Word2VecTrainer;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

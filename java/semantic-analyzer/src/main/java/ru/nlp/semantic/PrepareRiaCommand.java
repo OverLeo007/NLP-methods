@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ru.nlp.semantic.evaluation.RiaSubsetPreparation;
-import ru.nlp.semantic.model.evaluation.SubsetParameters;
+import ru.nlp.semantic.evaluation.dto.SubsetParameters;
 
 import lombok.RequiredArgsConstructor;
 import picocli.CommandLine.Command;

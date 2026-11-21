@@ -10,19 +10,20 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ru.nlp.semantic.backend.BackendRegistry;
-import ru.nlp.semantic.backend.ModelBackend;
-import ru.nlp.semantic.cnn.PairSampling;
 import ru.nlp.semantic.exception.InvalidInputException;
 import ru.nlp.semantic.generation.TemplateGenerator;
-import ru.nlp.semantic.model.analysis.Algorithm;
-import ru.nlp.semantic.model.cnn.CnnParameters;
-import ru.nlp.semantic.model.lsa.LsaParameters;
-import ru.nlp.semantic.model.lstm.LstmParameters;
-import ru.nlp.semantic.model.search.SearchResult;
-import ru.nlp.semantic.model.training.TrainingSummary;
-import ru.nlp.semantic.model.word2vec.Word2VecParameters;
+import ru.nlp.semantic.model.Algorithm;
+import ru.nlp.semantic.model.BackendRegistry;
+import ru.nlp.semantic.model.base.backend.ModelBackend;
+import ru.nlp.semantic.model.base.dto.TrainingSummary;
+import ru.nlp.semantic.model.cnn.dto.CnnParameters;
+import ru.nlp.semantic.model.lsa.dto.LsaParameters;
+import ru.nlp.semantic.model.lstm.dto.LstmObjective;
+import ru.nlp.semantic.model.lstm.dto.LstmParameters;
+import ru.nlp.semantic.model.shared.training.PairSampling;
+import ru.nlp.semantic.model.word2vec.dto.Word2VecParameters;
 import ru.nlp.semantic.preprocessing.TextPreprocessor;
+import ru.nlp.semantic.search.dto.SearchResult;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -142,6 +143,12 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
         @Option(names = "--workers", defaultValue = "1", description = "Потоки обучения и ND4J.")
         private int workers;
 
+        @Option(
+                names = "--seq2seq",
+                description = "Обучить LSTM восстанавливать токены. По умолчанию LSTM обучается поиску."
+        )
+        private boolean seq2seq;
+
         @Mixin
         private final NetworkOptions networkOptions = new NetworkOptions();
 
@@ -156,6 +163,7 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
             );
             requireAlgorithms(Set.of(Algorithm.lsa, Algorithm.cnn, Algorithm.lstm), "--max-features");
             requireAlgorithms(Set.of(Algorithm.word2vec), "--window");
+            requireAlgorithms(Set.of(Algorithm.lstm), "--seq2seq");
             requireAlgorithms(Set.of(Algorithm.cnn), NetworkOptions.CNN_ONLY);
             requireAlgorithms(
                     Set.of(Algorithm.cnn, Algorithm.lstm),
@@ -187,7 +195,8 @@ public class SemanticAnalyzerCommand implements Callable<Integer> {
                                 epochs,
                                 networkOptions.learningRate,
                                 seed,
-                                workers
+                                workers,
+                                seq2seq ? LstmObjective.seq2seq : LstmObjective.retrieval
                         )
                 );
                 case cnn -> cnnBackend.train(

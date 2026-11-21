@@ -1,7 +1,7 @@
 package ru.nlp.semantic.generation;
 
-import ru.nlp.semantic.model.search.SearchHit;
-import ru.nlp.semantic.model.search.SearchResult;
+import ru.nlp.semantic.search.dto.SearchHit;
+import ru.nlp.semantic.search.dto.SearchResult;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

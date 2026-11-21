@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
-import ru.nlp.semantic.model.corpus.Document;
+import ru.nlp.semantic.corpus.dto.Document;
 
 /** Читает папку UTF-8 TXT рекурсивно в порядке путей. */
 @Component
